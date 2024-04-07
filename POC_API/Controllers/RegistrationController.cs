@@ -48,8 +48,9 @@ namespace POC_API.Controllers
 
         [HttpPost]
         [Route("login")]
-        public string login(LoginDTO loginDTO)
+        public Response login(LoginDTO loginDTO)
         {
+            Response response = new Response();
 
             SqlConnection con = new SqlConnection(_context.GetConnectionString("Poc_api").ToString());
 
@@ -61,11 +62,15 @@ namespace POC_API.Controllers
 
             if (dataTable.Rows.Count > 0)
             {
-                return "Valid User";
+                response.statusCode = 200;
+                response.statusMessage = "OK";
+                return response;
             }
             else
             {
-                return "Invalid User";
+                response.statusCode = 400;
+                response.statusMessage = "Error";
+                return response;
             }
 
         }
