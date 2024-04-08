@@ -27,7 +27,7 @@ namespace POC_API.Controllers
             Response response = new Response(); 
             SqlConnection con = new SqlConnection(_context.GetConnectionString("Poc_api").ToString());
 
-            SqlCommand cmd = new SqlCommand("Insert into Registration(UserName,Password,Email,IsActive) values ('" + registrationDTO.UserName + "','" + registrationDTO.Password + "','" + registrationDTO.Email + "','" + registrationDTO.IsActive + "')", con);
+            SqlCommand cmd = new SqlCommand("Insert into Registration (UserName,Password,Email,IsActive) values ('" + registrationDTO.UserName + "','" + registrationDTO.Password + "','" + registrationDTO.Email + "','" + registrationDTO.IsActive + "')", con);
             con.Open();
             int i = cmd.ExecuteNonQuery();
             con.Close();
@@ -54,7 +54,7 @@ namespace POC_API.Controllers
 
             SqlConnection con = new SqlConnection(_context.GetConnectionString("Poc_api").ToString());
 
-            SqlDataAdapter sqlDataAdapter = new SqlDataAdapter("Select * from registration where Email = '" + loginDTO.Email + "' And Password = '" + loginDTO.Password + "' And IsActive = 1 ", con);
+            SqlDataAdapter sqlDataAdapter = new SqlDataAdapter("Select * from Registration where Email = '" + loginDTO.Email + "' And Password = '" + loginDTO.Password + "' And IsActive = 1 ", con);
 
             DataTable dataTable = new DataTable();
 

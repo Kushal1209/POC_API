@@ -21,11 +21,6 @@ namespace POC_API.Controllers
             _context = context;
         }
 
-        public IActionResult UploadExcel()
-        {
-            return View();
-        }
-
         [HttpPost]
         public async Task<IActionResult> UploadExcel(IFormFile file)
         {
@@ -78,11 +73,15 @@ namespace POC_API.Controllers
 
                     }
                 }
+
+                // Return a success message
+                return Ok("File uploaded successfully");
             }
 
-
-            return "";
+            // Return a bad request if file is not provided
+            return BadRequest("No file provided");
         }
+
     }
 
 }

@@ -8,5 +8,7 @@ namespace ExcelToDatabase.Data
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
         public DbSet<UserData> userDatas { get; set; }
+        
+        public DbSet<Registration> Registration { get; set; }
     }
 }
