@@ -59,12 +59,12 @@ namespace POC_API.Controllers
                                 }
 
                                 UserData userData = new UserData();
-                                userData.Name = reader.GetValue(1).ToString();
-                                userData.Company = reader.GetValue(2).ToString();
-                                userData.Email = reader.GetValue(3).ToString();
-                                userData.Number = reader.GetValue(4).ToString();
-                                userData.Title = reader.GetValue(5).ToString();
-
+                                userData.Name = reader.GetValue(0).ToString();
+                                userData.Company = reader.GetValue(1).ToString();
+                                userData.Email = reader.GetValue(2).ToString();
+                                userData.Number = reader.GetValue(3).ToString();
+                                userData.Title = reader.GetValue(4).ToString();
+                                userData.IsActive = 1;
 
                                 _context.Add(userData);
                                 await _context.SaveChangesAsync();

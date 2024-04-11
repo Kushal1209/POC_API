@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace POC_API.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240408060145_initial-commit")]
-    partial class initialcommit
+    [Migration("20240411170129_add User data")]
+    partial class addUserdata
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

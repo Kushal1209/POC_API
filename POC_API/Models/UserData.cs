@@ -1,4 +1,4 @@
-﻿    namespace POC_API.Models
+﻿namespace POC_API.Models
 {
     public class UserData
     {
