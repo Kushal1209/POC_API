@@ -11,11 +11,11 @@ namespace POC_API.EmailSender
             {
                 EnableSsl = true,
                 UseDefaultCredentials = false,
-                Credentials = new NetworkCredential("sagittarius.service@gmail.com", "gpep epjx ijlr psoy")
+                Credentials = new NetworkCredential("meet11303@gmail.com", "nmdm uxeo iuit muyk")
             };
 
             return client.SendMailAsync(
-               new MailMessage(from: "sagittarius.service@gmail.com",
+               new MailMessage(from: "meet11303@gmail.com",
                             to: email,
                             subject: subject,
                             body: message));    
