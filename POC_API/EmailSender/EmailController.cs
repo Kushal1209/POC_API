@@ -16,9 +16,9 @@ namespace POC_API.EmailSender
 
 
         [HttpPost]
-        public async Task<IActionResult> Index(string email, string subject, string message)
+        public async Task<IActionResult> Index(string companyName, string subject, string message)
         {
-            await emailSender.SendEmailAsync(email, subject, message);
+            await emailSender.SendEmailsFromDatabaseAsync(companyName, subject, message);
             return Ok("Email send successfully");
         }   
     }
