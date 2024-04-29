@@ -69,7 +69,7 @@ namespace POC_API.SMS
                     {
                         userid = user.Id,
                         campaignId = camp.Id,
-                        //ThreadId = 
+                        threadId = "0"
                     };
                     _dbContext.SmsCampaigns.Add(campaign);
                     await _dbContext.SaveChangesAsync();
