@@ -9,6 +9,16 @@ var connectionString = builder.Configuration.GetConnectionString("Poc_api") ??
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connectionString));
 
 
+builder.Services.AddCors(o => o.AddPolicy("MyPolicy", builder =>
+{
+    builder.AllowAnyOrigin()
+           .AllowAnyMethod()
+           .AllowAnyHeader();
+}));
+
+builder.Services.AddCors();
+
+builder.Services.AddControllers().AddNewtonsoftJson();
 // Add services to the container.
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 
@@ -28,6 +38,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseCors(x => x
+    .AllowAnyMethod()
+    .AllowAnyHeader()
+    .SetIsOriginAllowed(origin => true) // allow any origin
+    .AllowCredentials());
 
 app.UseHttpsRedirection();
 
