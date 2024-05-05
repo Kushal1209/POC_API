@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using POC_API.Models;
 using System.Net.Http.Headers;
 using System.Text;
@@ -26,6 +27,8 @@ namespace POC_API.sms_campaign
         private string assistant_id;
 
         private UserData userdata;
+
+        private readonly HashSet<string> _processedMessages = new HashSet<string>();
 
         private string[] fileIds = { "file-XqCBvbl0SLzw38vZN1Lw6uKs", "file-7mWyri4CRTRhHcvA1CefOOVH",
             "file-eLQYVVCdHhjC07PK5liRndNG", "file-d9AQR4GdlX1qEbmZb6QZwmpv", "file-Ifb9csWiVAc5jsM6S4rE10xN"
@@ -87,6 +90,15 @@ namespace POC_API.sms_campaign
                     .GetProperty("text")
                 .GetString();
 
+                string messageIdentifier = $"{phoneNumber}_{text}";
+
+                if (_processedMessages.Contains(messageIdentifier))
+                {
+                    // Message already processed, skip further processing
+                    return Ok();
+                }
+
+                _processedMessages.Add(messageIdentifier);
 
                 var user = _dbContext.userDatas.Where(u => u.Number == phoneNumber).First();
                 userdata = user;
@@ -112,11 +124,67 @@ namespace POC_API.sms_campaign
 
                 if (c.threadId != "0")
                 {
-                    //messaing exits with AI
+
+                    string url = $"https://api.openai.com/v1/threads/{c.threadId}/messages";
+                    HttpResponseMessage response1 = await client.GetAsync(url);
+                    if (response1.IsSuccessStatusCode)
+                    {
+                        string responseContent = await response1.Content.ReadAsStringAsync();
+
+                        JObject jsonResponse = JObject.Parse(responseContent);
+
+                        // Extract the "data" array from the JSON response
+                        JArray dataArray = (JArray)jsonResponse["data"];
+
+                        // Initialize a list to store the message values
+                        List<string> messageValues = new List<string>();
+
+                        // Iterate over each item in the "data" array
+                        foreach (JObject dataItem in dataArray)
+                        {
+                            JArray contentArray = (JArray)dataItem["content"];
+
+                            // Extract the first item from the "content" array
+                            JObject contentObject = (JObject)contentArray[0]; // Access the first element of the array
+
+                            // Extract the "text" object from the first item
+                            JObject textObject = (JObject)contentObject["text"];
+
+                            // Extract the "value" string from the "text" object
+                            string value = (string)textObject["value"];
+
+                            // Add the value to the list of message values
+                            messageValues.Add(value);
+                        }
+
+                        if (messageValues.Contains(text)) {
+                            return Ok();
+                        }
+
+                    }
+
+
+
+                    string apiUrl = $"https://api.openai.com/v1/threads/{c.threadId}/messages";
+
+
+                    var m = new
+                    {
+                        role = "user",
+                        content = text
+                    };
+
+                    string jsonRequestBody = JsonSerializer.Serialize(m);
+                    if (client.DefaultRequestHeaders.Contains("OpenAI-Beta")) client.DefaultRequestHeaders.Remove("OpenAI-Beta");
+                    client.DefaultRequestHeaders.Add("OpenAI-Beta", "assistants=v1");
+
+                    var content = new StringContent(jsonRequestBody, Encoding.UTF8, "application/json");
+                    HttpResponseMessage response = await client.PostAsync(apiUrl, content);
+
+                    if (client.DefaultRequestHeaders.Contains("OpenAI-Beta")) client.DefaultRequestHeaders.Remove("OpenAI-Beta");
+                    client.DefaultRequestHeaders.Add("OpenAI-Beta", "assistants=v2");
+
                     var message = await runAssistant(user.Name, assistant_id, c.threadId);
-                    //Response recived from AI send this to as a text to the same user number
-
-
                 }
                 else
                 {
@@ -251,6 +319,7 @@ namespace POC_API.sms_campaign
                     if (data.GetArrayLength() > 0)
                     {
                         JsonElement firstMessage = data[0];
+                        var role = firstMessage.GetProperty("role").GetString();
                         JsonElement firstMessageContent = firstMessage.GetProperty("content");
                         string firstMessageValue = firstMessageContent[0].GetProperty("text").GetProperty("value").GetString();
                         threadMessages = firstMessageValue;
@@ -277,8 +346,6 @@ namespace POC_API.sms_campaign
 
         private async Task<string> CreateThread(string message1, string message2)
         {
-
-
             var requestBody = new
             {
                 messages = new[]
