@@ -13,8 +13,8 @@ var connectionString = builder.Configuration.GetConnectionString("Poc_api") ??
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connectionString));
 
 
-/*string telnyxApiKey = "KEY018EDF5AD92F09666CCB334A8420AE07_yR0HLP0dEJLn4AHQsLG159";
-TelnyxConfiguration.SetApiKey(telnyxApiKey);*/
+string telnyxApiKey = "KEY018EDF5AD92F09666CCB334A8420AE07_yR0HLP0dEJLn4AHQsLG159";
+TelnyxConfiguration.SetApiKey(telnyxApiKey);
 
 // Add services
 builder.Services.AddTransient<SmsService>(); // Add SmsService to DI container
