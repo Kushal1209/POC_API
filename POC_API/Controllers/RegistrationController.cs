@@ -33,14 +33,14 @@ namespace POC_API.Controllers
             con.Close();
             if (i > 0)
             {
-                response.statusCode = 200;
-                response.statusMessage = "OK";
+                response.StatusCode = 200;
+                response.StatusMessage = "OK";
                 return response;
             }
             else
             {
-                response.statusCode = 400;
-                response.statusMessage = "Error";
+                response.StatusCode = 400;
+                response.StatusMessage = "Error";
                 return response;
             }
 
@@ -62,14 +62,14 @@ namespace POC_API.Controllers
 
             if (dataTable.Rows.Count > 0)
             {
-                response.statusCode = 200;
-                response.statusMessage = "OK";
+                response.StatusCode = 200;
+                response.StatusMessage = "OK";
                 return response;
             }
             else
             {
-                response.statusCode = 400;
-                response.statusMessage = "Error";
+                response.StatusCode = 400;
+                response.StatusMessage = "Error";
                 return response;
             }
 
