@@ -2,8 +2,10 @@
 {
     public class Response
     {
-        public int statusCode { get; set; }
+        public int StatusCode { get; set; }
 
-        public string statusMessage { get; set; }
+        public string StatusMessage { get; set; }
+
+        public object Data { get; set; }
     }
 }

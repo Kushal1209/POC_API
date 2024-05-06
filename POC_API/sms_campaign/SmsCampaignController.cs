@@ -13,14 +13,6 @@ namespace POC_API.sms_campaign
             _dbContext = dbContext;
         }
 
-        [HttpPost("create")]
-        public IActionResult CreateSmsCampaign([FromBody] SmsCampaigns campaign)
-        {
-            _dbContext.SmsCampaigns.Add(campaign);
-            _dbContext.SaveChanges();
-            return Ok("SMS campaign created successfully.");
-        }
-
         [HttpGet("all")]
         public IActionResult GetAllSmsCampaigns()
         {

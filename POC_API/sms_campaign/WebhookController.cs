@@ -52,17 +52,21 @@ namespace POC_API.sms_campaign
 
         // POST: api/webhook
         [HttpPost]
-        public async Task<IActionResult> Index(string campaignId, [FromBody] Object? telnyxData)
+        public async Task<Response> Index(string campaignId, [FromBody] Object? telnyxData)
         {
-            // [FromBody] Object? telnyxData
-            if (string.IsNullOrEmpty(campaignId) || telnyxData == null)
-            {
-                // Invalid request payload or missing campaign ID
-                return BadRequest();
-            }
+            Response response = new Response();
 
             try
             {
+                // [FromBody] Object? telnyxData
+                if (string.IsNullOrEmpty(campaignId) || telnyxData == null)
+                {
+                    // Invalid request payload or missing campaign ID
+                    response.StatusCode = 400;
+                    response.StatusMessage = "Invalid request payload or missing campaign ID";
+                    return response;
+                }
+
                 // Deserialize telnyxData to a JsonDocument
                 JsonDocument jsonDocument = JsonDocument.Parse(telnyxData.ToString());
 
@@ -70,8 +74,11 @@ namespace POC_API.sms_campaign
 
                 if (sent != "message.received")
                 {
-                    return Ok();
+                    response.StatusCode = 200;
+                    response.StatusMessage = "Message not received";
+                    return response;
                 }
+
                 // Access the "phone_number" and "text" properties from the payload
                 string phoneNumber = jsonDocument.RootElement
                     .GetProperty("data")
@@ -80,58 +87,62 @@ namespace POC_API.sms_campaign
                     .GetProperty("phone_number")
                     .GetString().Replace("+", "");
 
-                if (phoneNumber == null || phoneNumber.Length <= 0)
+                if (string.IsNullOrEmpty(phoneNumber))
                 {
-                    return Ok();
+                    response.StatusCode = 200;
+                    response.StatusMessage = "Phone number not found in payload";
+                    return response;
                 }
 
                 string text = jsonDocument.RootElement
                     .GetProperty("data")
                     .GetProperty("payload")
                     .GetProperty("text")
-                .GetString();
+                    .GetString();
 
                 string messageIdentifier = $"{phoneNumber}_{text}";
 
                 if (_processedMessages.Contains(messageIdentifier))
                 {
                     // Message already processed, skip further processing
-                    return Ok();
+                    response.StatusCode = 200;
+                    response.StatusMessage = "Message already processed";
+                    return response;
                 }
 
                 _processedMessages.Add(messageIdentifier);
 
-                var user = _dbContext.userDatas.Where(u => u.Number == phoneNumber).First();
-                userdata = user;
-
+                var user = _dbContext.userDatas.FirstOrDefault(u => u.Number == phoneNumber);
                 if (user == null)
                 {
-                    return BadRequest("User not exits");
+                    response.StatusCode = 400;
+                    response.StatusMessage = "User not exists";
+                    return response;
                 }
 
-                var camp = await _dbContext.SmsCampaigns.ToListAsync();
-
-                if (camp == null || camp.Count <= 0 || !camp.FindAll(x => x.userid == user.Id).Any())
+                var camp = await _dbContext.SmsCampaigns.FirstOrDefaultAsync(c => c.userid == user.Id);
+                if (camp == null)
                 {
-                    return Ok();
+                    response.StatusCode = 200;
+                    response.StatusMessage = "Campaign not found for the user";
+                    return response;
                 }
-                var c = camp.Find(x => x.userid == user.Id);
-                var inimsg = _dbContext.campaignTable.Where(x => x.Id == c.campaignId).First();
+
+                var inimsg = await _dbContext.campaignTable.FirstOrDefaultAsync(x => x.Id == camp.campaignId);
                 if (inimsg == null)
                 {
-                    return Ok();
+                    response.StatusCode = 200;
+                    response.StatusMessage = "Initial message not found for the campaign";
+                    return response;
                 }
 
-
-                if (c.threadId != "0")
+                if (camp.threadId != "0")
                 {
-
-                    string url = $"https://api.openai.com/v1/threads/{c.threadId}/messages";
+                    string url = $"https://api.openai.com/v1/threads/{camp.threadId}/messages";
                     HttpResponseMessage response1 = await client.GetAsync(url);
                     if (response1.IsSuccessStatusCode)
                     {
                         string responseContent = await response1.Content.ReadAsStringAsync();
-
                         JObject jsonResponse = JObject.Parse(responseContent);
 
                         // Extract the "data" array from the JSON response
@@ -158,16 +169,15 @@ namespace POC_API.sms_campaign
                             messageValues.Add(value);
                         }
 
-                        if (messageValues.Contains(text)) {
-                            return Ok();
+                        if (messageValues.Contains(text))
+                        {
+                            response.StatusCode = 200;
+                            response.StatusMessage = "Message already exists in the thread";
+                            return response;
                         }
-
                     }
 
-
-
-                    string apiUrl = $"https://api.openai.com/v1/threads/{c.threadId}/messages";
-
+                    string apiUrl = $"https://api.openai.com/v1/threads/{camp.threadId}/messages";
 
                     var m = new
                     {
@@ -180,35 +190,39 @@ namespace POC_API.sms_campaign
                     client.DefaultRequestHeaders.Add("OpenAI-Beta", "assistants=v1");
 
                     var content = new StringContent(jsonRequestBody, Encoding.UTF8, "application/json");
-                    HttpResponseMessage response = await client.PostAsync(apiUrl, content);
+                    HttpResponseMessage httpResponse = await client.PostAsync(apiUrl, content);
 
                     if (client.DefaultRequestHeaders.Contains("OpenAI-Beta")) client.DefaultRequestHeaders.Remove("OpenAI-Beta");
                     client.DefaultRequestHeaders.Add("OpenAI-Beta", "assistants=v2");
 
-                    var message = await runAssistant(user.Name, assistant_id, c.threadId);
+                    var message = await runAssistant(user.Name, assistant_id, camp.threadId);
                 }
                 else
                 {
-                    //messaing dosenot exiting with ai
+                    // Messaging does not exist with AI
                     await InitializeAssiccent(inimsg.message, text, user);
                 }
 
-
-                return Ok("Phone number: " + phoneNumber + ", Text: " + text);
+                response.StatusCode = 200;
+                response.StatusMessage = "Phone number: " + phoneNumber + ", Text: " + text;
+                return response;
             }
             catch (JsonException ex)
             {
                 // Handle JSON parsing errors
-                return BadRequest("Error parsing JSON: " + ex.Message);
+                response.StatusCode = 400;
+                response.StatusMessage = "Error parsing JSON: " + ex.Message;
+                return response;
             }
             catch (Exception ex)
             {
                 // Handle other exceptions
-                return StatusCode(500, "Internal server error: " + ex.Message);
+                response.StatusCode = 500;
+                response.StatusMessage = "Internal server error: " + ex.Message;
+                return response;
             }
-
-            return Ok();
         }
+
 
         private async Task InitializeAssiccent(string msg1, string msg2, UserData user)
         {
@@ -346,7 +360,7 @@ namespace POC_API.sms_campaign
                     var userCampaign = _dbContext.SmsCampaigns.FirstOrDefault(c => c.threadId == thread);
                     if (userCampaign != null)
                     {
-                        userCampaign.isConverted = 1;
+                        userCampaign.isConverted = true;
                         await _dbContext.SaveChangesAsync();
                     }
                 }

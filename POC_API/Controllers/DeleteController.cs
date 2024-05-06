@@ -1,6 +1,7 @@
 ﻿using ExcelToDatabase.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using POC_API.Models;
 
 namespace POC_API.Controllers
 {
@@ -18,21 +19,25 @@ namespace POC_API.Controllers
 
 
         [HttpDelete]
-        public IActionResult DeleteData()
+        public async Task<Response> DeleteData()
         {
+            Response response = new Response();
+
             try
             {
                 _context.Database.ExecuteSqlRaw("DELETE FROM campaignTable");
-
                 _context.Database.ExecuteSqlRaw("DELETE FROM SmsCampaigns");
+                await _context.SaveChangesAsync();
 
-                _context.SaveChanges();
-
-                return Ok("Data deleted successfully");
+                response.StatusCode = 200;
+                response.StatusMessage = "Data deleted successfully";
+                return response;
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"An error occurred while deleting data: {ex.Message}");
+                response.StatusCode = 500;
+                response.StatusMessage = $"An error occurred while deleting data: {ex.Message}";
+                return response;
             }
         }
     }
