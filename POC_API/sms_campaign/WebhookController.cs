@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using POC_API.Models;
+using System.Data;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
@@ -311,7 +312,7 @@ namespace POC_API.sms_campaign
 
 
                 var threadMessages = "";
-
+                var role = "";
                 using (JsonDocument doc = JsonDocument.Parse(responseContent))
                 {
                     JsonElement root = doc.RootElement;
@@ -319,7 +320,7 @@ namespace POC_API.sms_campaign
                     if (data.GetArrayLength() > 0)
                     {
                         JsonElement firstMessage = data[0];
-                        var role = firstMessage.GetProperty("role").GetString();
+                        role = firstMessage.GetProperty("role").GetString();
                         JsonElement firstMessageContent = firstMessage.GetProperty("content");
                         string firstMessageValue = firstMessageContent[0].GetProperty("text").GetProperty("value").GetString();
                         threadMessages = firstMessageValue;
@@ -338,6 +339,17 @@ namespace POC_API.sms_campaign
                 };
 
                 await messageService.CreateAsync(newMessage);
+
+
+                if (role == "assistant" && threadMessages.Contains("https://www.sunbridgeleasing.com/home/LeaseProgramme"))
+                {
+                    var userCampaign = _dbContext.SmsCampaigns.FirstOrDefault(c => c.threadId == thread);
+                    if (userCampaign != null)
+                    {
+                        userCampaign.isConverted = 1;
+                        await _dbContext.SaveChangesAsync();
+                    }
+                }
 
             }
 

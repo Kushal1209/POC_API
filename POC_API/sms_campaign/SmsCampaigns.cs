@@ -6,6 +6,7 @@
         public int userid { get; set; } 
         public int campaignId { get; set; }
         public string threadId { get; set; }
+        public int isConverted { get; set; }
 
     }
 }
