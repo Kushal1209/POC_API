@@ -75,13 +75,13 @@ namespace POC_API.Controllers
                     }
                 }
 
-                response.statusCode = 200;
-                response.statusMessage = "File uploaded successfully";
+                response.StatusCode = 200;
+                response.StatusMessage = "File uploaded successfully";
             }
             else
             {
-                response.statusCode = 400;
-                response.statusMessage = "No file provided";
+                response.StatusCode = 400;
+                response.StatusMessage = "No file provided";
             }
 
             return response;

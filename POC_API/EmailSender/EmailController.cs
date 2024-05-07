@@ -21,17 +21,17 @@ namespace POC_API.EmailSender
         {
             Response response = new Response();
 
-            var i = emailSender.SendEmailAsync(email, subject, message);
+            var i = emailSender.SendEmailsFromDatabaseAsync(email, subject, message);
             
             if(i != null)
             {
-                response.statusCode = 200;
-                response.statusMessage = "Email send successfully";
+                response.StatusCode = 200;
+                response.StatusMessage = "Email send successfully";
             }
             else
             {
-                response.statusCode = 400;
-                response.statusMessage = "Email failed to send";
+                response.StatusCode = 400;
+                response.StatusMessage = "Email failed to send";
             }
 
             return response;
