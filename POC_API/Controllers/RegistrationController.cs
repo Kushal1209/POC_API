@@ -24,7 +24,7 @@ namespace POC_API.Controllers
         [Route("Registration")]
         public Response Register(RegistratioinDTO registrationDTO)
         {
-            Response response = new Response(); 
+            Response response = new Response();
             SqlConnection con = new SqlConnection(_context.GetConnectionString("Poc_api").ToString());
 
             SqlCommand cmd = new SqlCommand("Insert into Registration (UserName,Password,Email,IsActive) values ('" + registrationDTO.UserName + "','" + registrationDTO.Password + "','" + registrationDTO.Email + "','" + registrationDTO.IsActive + "')", con);

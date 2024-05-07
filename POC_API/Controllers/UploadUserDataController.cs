@@ -22,9 +22,10 @@ namespace POC_API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> UploadExcel(IFormFile file)
+        public async Task<Response> UploadExcel(IFormFile file)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            var response = new Response();
 
             if (file != null && file.Length > 0)
             {
@@ -74,12 +75,16 @@ namespace POC_API.Controllers
                     }
                 }
 
-                // Return a success message
-                return Ok("File uploaded successfully");
+                response.statusCode = 200;
+                response.statusMessage = "File uploaded successfully";
+            }
+            else
+            {
+                response.statusCode = 400;
+                response.statusMessage = "No file provided";
             }
 
-            // Return a bad request if file is not provided
-            return BadRequest("No file provided");
+            return response;
         }
 
     }

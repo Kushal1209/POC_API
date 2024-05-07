@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using POC_API.Models;
 
 namespace POC_API.EmailSender
 {   
@@ -16,10 +17,24 @@ namespace POC_API.EmailSender
 
 
         [HttpPost]
-        public async Task<IActionResult> Index(string email, string subject, string message)
+        public Response Index(string email, string subject, string message)
         {
-            await emailSender.SendEmailAsync(email, subject, message);
-            return Ok("Email send successfully");
+            Response response = new Response();
+
+            var i = emailSender.SendEmailAsync(email, subject, message);
+            
+            if(i != null)
+            {
+                response.statusCode = 200;
+                response.statusMessage = "Email send successfully";
+            }
+            else
+            {
+                response.statusCode = 400;
+                response.statusMessage = "Email failed to send";
+            }
+
+            return response;
         }   
     }
 }
